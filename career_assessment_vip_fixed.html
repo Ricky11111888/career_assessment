@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专业职业评估系统</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#4f9cf9;--secondary:#6c63ff;--gradient:linear-gradient(135deg,#4f9cf9,#6c63ff);--bg:#f0f2f5;--card:#fff;--text:#2d3436;--text-light:#636e72;--border:#e0e0e0;--success:#00b894;--warning:#fdcb6e;--danger:#e17055;--radius:12px;--shadow:0 4px 20px rgba(0,0,0,0.08)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.app{max-width:800px;margin:0 auto;padding:16px}
+.header{background:var(--gradient);border-radius:var(--radius);padding:32px 24px;color:#fff;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);pointer-events:none}
+.header h1{font-size:1.8rem;font-weight:700;margin-bottom:8px;position:relative}
+.header p{font-size:0.95rem;opacity:0.9;position:relative}
+.progress-container{background:var(--card);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;box-shadow:var(--shadow)}
+.progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:0.85rem;color:var(--text-light)}
+.progress-bar{height:8px;background:#e8e8e8;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--gradient);border-radius:4px;transition:width 0.5s ease;width:0%}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);transition:opacity 0.3s,transform 0.3s}
+.card.hidden{display:none}
+.section-tag{display:inline-block;padding:4px 14px;border-radius:20px;font-size:0.8rem;font-weight:600;color:#fff;margin-bottom:16px}
+.tag-holland{background:linear-gradient(135deg,#e17055,#fd79a8)}
+.tag-bigfive{background:linear-gradient(135deg,#00b894,#00cec9)}
+.tag-scenario{background:linear-gradient(135deg,#6c5ce7,#a29bfe)}
+.tag-ability{background:linear-gradient(135deg,#fdcb6e,#e17055)}
+.tag-value{background:linear-gradient(135deg,#0984e3,#74b9ff)}
+.card-title{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.card-desc{font-size:0.85rem;color:var(--text-light);margin-bottom:20px}
+.question{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #f0f0f0}
+.question:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.question-num{font-size:0.8rem;color:var(--text-light);margin-bottom:6px;font-weight:600}
+.question-text{font-size:0.95rem;font-weight:500;margin-bottom:12px;line-height:1.7}
+.likert{display:flex;gap:8px;flex-wrap:wrap}
+.likert-btn{width:52px;height:40px;border:2px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;color:var(--text-light);transition:all 0.2s;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.likert-btn:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+.likert-btn.active{background:var(--gradient);border-color:transparent;color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(108,99,255,0.3)}
+.likert-label{font-size:0.65rem;margin-top:2px;font-weight:400;opacity:0.7}
+.likert-btn.active .likert-label{opacity:1}
+.scenario-options{display:flex;flex-direction:column;gap:10px}
+.option-card{padding:14px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.2s;font-size:0.9rem;line-height:1.6}
+.option-card:hover{border-color:var(--primary);background:#f8f9ff}
+.option-card.active{border-color:var(--secondary);background:linear-gradient(135deg,rgba(79,156,249,0.08),rgba(108,99,255,0.08));box-shadow:0 2px 8px rgba(108,99,255,0.15)}
+.option-card .opt-label{font-weight:700;color:var(--secondary);margin-right:8px}
+.nav-buttons{display:flex;justify-content:space-between;gap:12px;margin-top:20px}
+.btn{padding:12px 28px;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary{background:var(--gradient);color:#fff}
+.btn-secondary{background:#f0f0f0;color:var(--text)}
+.btn-submit{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;padding:14px 40px;font-size:1.05rem}
+/* Results */
+.result-section{margin-bottom:24px}
+.result-title{font-size:1.2rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.result-title .icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:#fff}
+.holland-code-display{text-align:center;padding:24px;background:linear-gradient(135deg,rgba(79,156,249,0.05),rgba(108,99,255,0.05));border-radius:var(--radius);margin-bottom:20px}
+.holland-code-letters{display:flex;justify-content:center;gap:12px;margin-bottom:12px}
+.holland-letter{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.15)}
+.holland-letter:nth-child(1){background:linear-gradient(135deg,#e17055,#fd79a8)}
+.holland-letter:nth-child(2){background:linear-gradient(135deg,#4f9cf9,#6c63ff)}
+.holland-letter:nth-child(3){background:linear-gradient(135deg,#00b894,#00cec9)}
+.holland-labels{display:flex;justify-content:center;gap:12px}
+.holland-label{width:64px;font-size:0.75rem;color:var(--text-light);text-align:center}
+.chart-container{display:flex;justify-content:center;margin:20px 0}
+canvas{max-width:100%}
+.bar-chart{margin:8px 0}
+.bar-row{display:flex;align-items:center;margin-bottom:10px}
+.bar-label{width:80px;font-size:0.85rem;font-weight:600;text-align:right;padding-right:12px;flex-shrink:0}
+.bar-track{flex:1;height:24px;background:#f0f0f0;border-radius:12px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:12px;transition:width 1s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:0.75rem;color:#fff;font-weight:600;min-width:40px}
+.bar-fill.o{background:linear-gradient(135deg,#e17055,#fd79a8)}
+.bar-fill.c{background:linear-gradient(135deg,#00b894,#00cec9)}
+.bar-fill.e{background:linear-gradient(135deg,#fdcb6e,#e17055)}
+.bar-fill.a{background:linear-gradient(135deg,#6c5ce7,#a29bfe)}
+.bar-fill.n{background:linear-gradient(135deg,#0984e3,#74b9ff)}
+.tag{display:inline-block;padding:4px 12px;border-radius:16px;font-size:0.8rem;font-weight:600;margin:3px}
+.tag-blue{background:rgba(79,156,249,0.12);color:#4f9cf9}
+.tag-purple{background:rgba(108,99,255,0.12);color:#6c63ff}
+.tag-green{background:rgba(0,184,148,0.12);color:#00b894}
+.tag-orange{background:rgba(225,112,85,0.12);color:#e17055}
+.tag-pink{background:rgba(253,121,168,0.12);color:#fd79a8}
+.rec-card{background:#f8f9ff;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid var(--secondary)}
+.rec-card h4{font-size:0.95rem;margin-bottom:6px;color:var(--secondary)}
+.rec-card p{font-size:0.85rem;color:var(--text-light);line-height:1.7}
+.strength-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fff4;border-radius:8px;margin-bottom:8px}
+.strength-item.weakness{background:#fff5f5}
+.strength-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.strength-dot.s{background:#00b894}
+.strength-dot.w{background:#e17055}
+.strength-name{font-weight:600;font-size:0.9rem}
+.strength-score{margin-left:auto;font-size:0.85rem;color:var(--text-light)}
+.expandable{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.expandable-header{padding:14px 16px;background:#fafafa;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:0.95rem;transition:background 0.2s}
+.expandable-header:hover{background:#f0f0f0}
+.expandable-header .arrow{transition:transform 0.3s;font-size:0.8rem}
+.expandable-header.open .arrow{transform:rotate(180deg)}
+.expandable-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease}
+.expandable-body.open{max-height:2000px}
+.expandable-content{padding:16px}
+.welcome-icon{font-size:3rem;margin-bottom:12px}
+.btn-start{margin-top:20px;padding:14px 48px;font-size:1.05rem;background:var(--gradient);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:all 0.2s;box-shadow:0 4px 15px rgba(108,99,255,0.3)}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,99,255,0.4)}
+.dim-desc{font-size:0.85rem;color:var(--text-light);margin:8px 0 16px;padding:10px 14px;background:#f8f9ff;border-radius:8px;line-height:1.7}
+.job-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+@media(max-width:600px){
+.app{padding:10px}
+.header{padding:24px 16px}
+.header h1{font-size:1.4rem}
+.card{padding:16px}
+.likert-btn{width:44px;height:36px;font-size:0.8rem}
+.holland-letter{width:52px;height:52px;font-size:1.4rem}
+.holland-labels{gap:8px}
+.holland-label{width:52px}
+.bar-label{width:60px;font-size:0.78rem}
+.btn{padding:10px 20px;font-size:0.9rem}
+}
+.fade-in{animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000}
+.spinner{width:48px;height:48px;border:4px solid #f0f0f0;border-top:4px solid var(--secondary);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:1rem;color:var(--text-light);font-weight:500}
+.print-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;background:var(--gradient);color:#fff;border:none;cursor:pointer;font-size:1.2rem;box-shadow:0 4px 15px rgba(108,99,255,0.3);transition:all 0.2s;z-index:100;display:none}
+.print-btn:hover{transform:scale(1.1)}
+/* Activation styles */
+.activation-container{max-width:400px;margin:0 auto;padding:40px 20px;text-align:center}
+.activation-icon{font-size:4rem;margin-bottom:20px}
+.activation-title{font-size:1.5rem;font-weight:700;margin-bottom:12px;color:var(--text)}
+.activation-desc{font-size:0.9rem;color:var(--text-light);margin-bottom:24px;line-height:1.6}
+.activation-input{width:100%;padding:16px 20px;font-size:1.2rem;text-align:center;letter-spacing:4px;border:2px solid var(--border);border-radius:12px;margin-bottom:16px;transition:all 0.2s;text-transform:uppercase}
+.activation-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(79,156,249,0.1)}
+.activation-btn{width:100%;padding:16px 24px;font-size:1.05rem;background:var(--gradient);color:#fff;border:none;border-radius:12px;cursor:pointer;font-weight:600;transition:all 0.2s}
+.activation-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,99,255,0.4)}
+.activation-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.error-message{color:var(--danger);font-size:0.85rem;margin-top:12px;padding:10px 16px;background:#fff5f5;border-radius:8px;display:none}
+.error-message.show{display:block}
+.success-message{color:var(--success);font-size:0.85rem;margin-top:12px;padding:10px 16px;background:#f0fff4;border-radius:8px;display:none}
+.success-message.show{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+<h1>专业职业评估系统</h1>
+<p>基于霍兰德职业兴趣 · 大五人格 · 情境判断 · 能力与价值观的全面评估</p>
+</div>
+<div class="progress-container" id="progressContainer" style="display:none">
+<div class="progress-info">
+<span id="progressText">第 1 部分 / 共 6 部分</span>
+<span id="progressPercent">0%</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<!-- Activation -->
+<div class="card fade-in" id="activationCard">
+<div class="activation-container">
+<div class="activation-icon">&#x1F511;</div>
+<h2 class="activation-title">激活测评</h2>
+<p class="activation-desc">请输入您的8位激活码以开始职业评估<br>每个激活码可在最多3台设备上使用</p>
+<input type="text" class="activation-input" id="activationCode" placeholder="XXXXXXXX" maxlength="8" autocomplete="off">
+<button class="activation-btn" onclick="activate()">激活并进入</button>
+<div class="error-message" id="errorMessage"></div>
+<div class="success-message" id="successMessage"></div>
+</div>
+</div>
+
+<!-- Welcome -->
+<div class="card hidden" id="welcomeCard">
+<div style="text-align:center;padding:20px 0">
+<div class="welcome-icon">&#x1F3AF;</div>
+<h2 style="margin-bottom:12px">发现你的职业方向</h2>
+<p style="color:var(--text-light);margin-bottom:8px;max-width:500px;margin-left:auto;margin-right:auto">本评估包含 <strong>106 道题目</strong>，涵盖霍兰德职业兴趣、大五人格特质、情境判断、核心能力与职业价值观五大维度，帮助你全面了解自己的职业倾向。</p>
+<p style="color:var(--text-light);font-size:0.85rem;margin-bottom:4px">预计用时：20-30 分钟</p>
+<p style="color:var(--text-light);font-size:0.85rem">请根据第一直觉作答，没有对错之分</p>
+<button class="btn-start" onclick="startAssessment()">开始评估</button>
+</div>
+</div>
+
+<!-- Part 1: Holland -->
+<div class="card hidden" id="part1Card">
+<span class="section-tag tag-holland">第一部分</span>
+<h3 class="card-title">霍兰德职业兴趣评估</h3>
+<p class="card-desc">请根据你的真实感受，对以下陈述进行评分（1=很不符合，5=非常符合）</p>
+<div id="part1Questions"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" onclick="goPart(0)" id="p1prev" disabled>上一部分</button>
+<button class="btn btn-primary" onclick="goPart(2)">下一部分</button>
+</div>
+</div>
+
+<!-- Part 2: Big Five -->
+<div class="card hidden" id="part2Card">
+<span class="section-tag tag-bigfive">第二部分</span>
+<h3 class="card-title">大五人格评估</h3>
+<p class="card-desc">请根据你的真实感受，对以下陈述进行评分（1=很不符合，5=非常符合）</p>
+<div id="part2Questions"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" onclick="goPart(1)">上一部分</button>
+<button class="btn btn-primary" onclick="goPart(3)">下一部分</button>
+</div>
+</div>
+
+<!-- Part 3: Scenarios -->
+<div class="card hidden" id="part3Card">
+<span class="section-tag tag-scenario">第三部分</span>
+<h3 class="card-title">情境判断题</h3>
+<p class="card-desc">请想象以下工作场景，选择最符合你反应的选项</p>
+<div id="part3Questions"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" onclick="goPart(2)">上一部分</button>
+<button class="btn btn-primary" onclick="goPart(4)">下一部分</button>
+</div>
+</div>
+
+<!-- Part 4: Abilities -->
+<div class="card hidden" id="part4Card">
+<span class="section-tag tag-ability">第四部分</span>
+<h3 class="card-title">核心能力自评</h3>
+<p class="card-desc">请评估你在以下各项能力上的水平（1=很弱，5=很强）</p>
+<div id="part4Questions"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" onclick="goPart(3)">上一部分</button>
+<button class="btn btn-primary" onclick="goPart(5)">下一部分</button>
+</div>
+</div>
+
+<!-- Part 5: Values -->
+<div class="card hidden" id="part5Card">
+<span class="section-tag tag-value">第五部分</span>
+<h3 class="card-title">职业价值观</h3>
+<p class="card-desc">请评估以下各项职业价值对你的重要程度（1=很不重要，5=非常重要）</p>
+<div id="part5Questions"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" onclick="goPart(4)">上一部分</button>
+<button class="btn btn-submit" onclick="submitAssessment()">提交并生成报告</button>
+</div>
+</div>
+
+<!-- Results -->
+<div class="card hidden" id="resultCard">
+<div id="resultContent"></div>
+</div>
+</div>
+
+<button class="print-btn" id="printBtn" onclick="window.print()" title="打印报告">&#x1F5A8;</button>
+
+<script>
+// ==================== ACTIVATION CODES ====================
+// Hardcoded valid activation codes - each can be used on up to 3 devices
+const VALID_CODES = [
+    'QQ88R4UW', 'RAU26CY7', '9AFPTXM2', 'V5LFL3AX', '347N2204A',
+    'U2B638H5', '8H3LKPF7', 'NUYHPLS5', 'K9M2P4QX', 'W7N3R8TY',
+    'A1B2C3D4', 'E5F6G7H8', 'I9J0K1L2', 'M3N4O5P6', 'Q7R8S9T0',
+    'U1V2W3X4', 'Y5Z6A7B8', 'C9D0E1F2', 'G3H4I5J6', 'K7L8M9N0'
+];
+
+let activatedCode = null;
+
+// ==================== DEVICE FINGERPRINT ====================
+function generateDeviceFingerprint() {
+    const nav = navigator;
+    const screen = window.screen;
+    const fingerprint = [
+        nav.userAgent,
+        screen.width + 'x' + screen.height,
+        screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        nav.language,
+        nav.platform
+    ].join('|');
+    // Simple hash
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+        const char = fingerprint.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'device_' + Math.abs(hash).toString(16);
+}
+
+// ==================== ACTIVATION FUNCTIONS ====================
+function showError(msg) {
+    const el = document.getElementById('errorMessage');
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById('successMessage').classList.remove('show');
+}
+
+function showSuccess(msg) {
+    const el = document.getElementById('successMessage');
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById('errorMessage').classList.remove('show');
+}
+
+function activate() {
+    const code = document.getElementById('activationCode').value.toUpperCase().trim();
+    
+    if (code.length !== 8) {
+        showError('请输入8位激活码');
+        return;
+    }
+    
+    // Validate code format
+    if (!/^[A-Z0-9]{8}$/.test(code)) {
+        showError('激活码格式不正确，请输入8位字母和数字组合');
+        return;
+    }
+    
+    // Check if code is valid
+    if (!VALID_CODES.includes(code)) {
+        showError('无效的激活码，请检查输入或联系卖家');
+        return;
+    }
+    
+    // Get current device fingerprint
+    const currentDevice = generateDeviceFingerprint();
+    
+    // Check code usage data
+    const codeUsageKey = 'careerAssessmentCode_' + code;
+    let codeData = JSON.parse(localStorage.getItem(codeUsageKey) || 'null');
+    
+    if (!codeData) {
+        // First time using this code
+        codeData = {
+            code: code,
+            devices: [currentDevice],
+            activatedAt: new Date().toISOString()
+        };
+    } else {
+        // Code already used before
+        if (codeData.devices && codeData.devices.length >= 3) {
+            if (!codeData.devices.includes(currentDevice)) {
+                showError('该激活码已达到最大设备数量限制（3台）');
+                return;
+            }
+        } else {
+            // Add new device
+            if (!codeData.devices.includes(currentDevice)) {
+                codeData.devices.push(currentDevice);
+            }
+        }
+    }
+    
+    // Save code usage
+    localStorage.setItem(codeUsageKey, JSON.stringify(codeData));
+    
+    // Save local activation
+    localStorage.setItem('careerAssessmentActivation', JSON.stringify({
+        code: code,
+        devices: codeData.devices,
+        activatedAt: codeData.activatedAt
+    }));
+    
+    activatedCode = code;
+    showSuccess('激活成功！正在进入测评...');
+    
+    setTimeout(() => {
+        showWelcome();
+    }, 1000);
+}
+
+function checkExistingActivation() {
+    const activation = JSON.parse(localStorage.getItem('careerAssessmentActivation') || 'null');
+    if (activation && activation.code) {
+        // Check if code is still valid
+        if (VALID_CODES.includes(activation.code)) {
+            const currentDevice = generateDeviceFingerprint();
+            // Check if this device is authorized
+            const codeUsageKey = 'careerAssessmentCode_' + activation.code;
+            const codeData = JSON.parse(localStorage.getItem(codeUsageKey) || 'null');
+            if (codeData && codeData.devices && codeData.devices.includes(currentDevice)) {
+                activatedCode = activation.code;
+                showWelcome();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function showWelcome() {
+    document.getElementById('activationCard').classList.add('hidden');
+    document.getElementById('welcomeCard').classList.remove('hidden');
+    document.getElementById('welcomeCard').classList.add('fade-in');
+}
+
+// ==================== DATA ====================
+const hollandQuestions = [
+// R 现实型
+{type:'R',text:'我喜欢亲自动手修理或组装物品'},
+{type:'R',text:'我享受使用工具、机械或技术设备的过程'},
+{type:'R',text:'我更喜欢做有具体产出和可见成果的工作'},
+{type:'R',text:'我喜欢户外活动或需要身体参与的任务'},
+{type:'R',text:'我对事物的工作原理有浓厚兴趣，喜欢拆解研究'},
+{type:'R',text:'我擅长空间想象，能看懂图纸或技术图纸'},
+// I 研究型
+{type:'I',text:'我喜欢深入分析问题，不满足于表面答案'},
+{type:'I',text:'我享受阅读科技、学术或专业领域的文章'},
+{type:'I',text:'我善于发现数据中的规律和隐藏模式'},
+{type:'I',text:'我喜欢独立思考，不急于下结论'},
+{type:'I',text:'我对解决复杂的技术或理论问题感到兴奋'},
+{type:'I',text:'我习惯用系统化的方法分析问题'},
+// A 艺术型
+{type:'A',text:'我经常有新的创意或想法冒出来'},
+{type:'A',text:'我喜欢通过写作、绘画、音乐等方式表达自己'},
+{type:'A',text:'我对美学和设计有敏锐的感知力'},
+{type:'A',text:'我不喜欢被规则和流程束缚，偏好自由发挥'},
+{type:'A',text:'我享受创造全新事物的过程'},
+{type:'A',text:'我对色彩、构图、声音等有较强的感受力'},
+// S 社会型
+{type:'S',text:'我喜欢帮助他人解决困难或提供建议'},
+{type:'S',text:'我善于倾听他人的想法和感受'},
+{type:'S',text:'我享受教学、指导或培训他人的过程'},
+{type:'S',text:'我关心社会问题，希望自己的工作能帮助他人'},
+{type:'S',text:'我善于化解人际冲突，促进团队合作'},
+{type:'S',text:'我愿意花时间了解他人的需求和期望'},
+// E 企业型
+{type:'E',text:'我喜欢带领团队达成共同目标'},
+{type:'E',text:'我善于说服他人接受我的观点或方案'},
+{type:'E',text:'我享受竞争，追求超越自我和他人'},
+{type:'E',text:'我愿意承担风险去追求更大的回报'},
+{type:'E',text:'我善于发现商业机会并制定行动计划'},
+{type:'E',text:'我喜欢在公共场合发言或做展示'},
+// C 常规型
+{type:'C',text:'我喜欢按照既定流程和规范完成工作'},
+{type:'C',text:'我擅长整理文件、数据和资料'},
+{type:'C',text:'我重视工作的准确性和细节'},
+{type:'C',text:'我享受有条理、有计划的工作方式'},
+{type:'C',text:'我喜欢处理数字、表格和统计数据'},
+{type:'C',text:'我倾向于选择稳定、可预期的工作环境'}
+];
+
+const bigFiveQuestions = [
+// O 开放性
+{dim:'O',text:'我对新的想法和经验充满好奇'},
+{dim:'O',text:'我喜欢探索抽象的概念和理论'},
+{dim:'O',text:'我经常尝试用不同的方法解决问题'},
+{dim:'O',text:'我对艺术和文化有浓厚的兴趣'},
+{dim:'O',text:'我想象力丰富，经常思考"如果…会怎样"'},
+// C 尽责性
+{dim:'C',text:'我做事有条理，喜欢提前规划'},
+{dim:'C',text:'我注重细节，力求把每件事做到最好'},
+{dim:'C',text:'我能够坚持完成困难的任务，不轻易放弃'},
+{dim:'C',text:'我总是按时完成承诺的事情'},
+{dim:'C',text:'我做事认真负责，值得信赖'},
+// E 外向性
+{dim:'E',text:'我在社交场合中感到自在和活跃'},
+{dim:'E',text:'我喜欢认识新朋友，扩大社交圈'},
+{dim:'E',text:'我善于在群体中表达自己的观点'},
+{dim:'E',text:'我喜欢组织聚会或集体活动'},
+{dim:'E',text:'我精力充沛，喜欢快节奏的工作环境'},
+// A 宜人性
+{dim:'A',text:'我信任他人，倾向于看到别人好的一面'},
+{dim:'A',text:'我愿意帮助他人，即使需要牺牲自己的时间'},
+{dim:'A',text:'我避免与人发生冲突，倾向于妥协'},
+{dim:'A',text:'我对他人的感受很敏感'},
+{dim:'A',text:'我被认为是一个友善和随和的人'},
+// N 神经质
+{dim:'N',text:'我经常感到焦虑或担忧'},
+{dim:'N',text:'我的情绪波动较大，容易受影响'},
+{dim:'N',text:'面对压力时，我很难保持冷静'},
+{dim:'N',text:'我容易对小事感到沮丧或烦躁'},
+{dim:'N',text:'我经常对自己的能力感到不自信'}
+];
+
+const scenarioQuestions = [
+{q:'团队讨论陷入僵局，各方意见不一致。你会：',opts:[
+{text:'提出一个新的创意方案来打破僵局',type:'A'},
+{text:'收集更多数据，用客观分析来决策',type:'I'},
+{text:'分别与各方私下沟通，了解真实想法',type:'S'},
+{text:'直接拍板决定，推动团队继续前进',type:'E'},
+{text:'按照公司既定流程来处理',type:'C'}
+]},
+{q:'你接到一个全新的项目，之前没有相关经验。你会：',opts:[
+{text:'先研究类似项目的案例和最佳实践',type:'I'},
+{text:'边做边学，在实践中快速迭代',type:'R'},
+{text:'寻找有经验的同事请教',type:'S'},
+{text:'制定详细计划，分阶段推进',type:'C'},
+{text:'把它当作展示自己能力的机会，主动请缨',type:'E'}
+]},
+{q:'你的同事在工作中犯了错误，影响了你的进度。你会：',opts:[
+{text:'直接指出问题，要求对方立即改正',type:'E'},
+{text:'先了解情况，看看能否一起解决',type:'S'},
+{text:'分析错误原因，提出改进方案',type:'I'},
+{text:'重新调整自己的计划来弥补时间',type:'C'},
+{text:'提出创新的解决方案来绕过问题',type:'A'}
+]},
+{q:'公司要求削减部门预算20%。你会：',opts:[
+{text:'仔细分析每项开支，找出最优削减方案',type:'C'},
+{text:'提出创新的工作方式来降低成本',type:'A'},
+{text:'与团队成员讨论，集思广益',type:'S'},
+{text:'研究行业案例，找到最佳实践',type:'I'},
+{text:'主动承担责任，制定大胆的改革方案',type:'E'}
+]},
+{q:'你发现一个工作流程可以优化，但需要改变大家习惯的做法。你会：',opts:[
+{text:'先用数据证明新方案的优势',type:'I'},
+{text:'逐个说服关键同事，获得支持',type:'S'},
+{text:'直接向领导提出建议并推动实施',type:'E'},
+{text:'先在小范围内试点，用成果说话',type:'R'},
+{text:'设计一个更有创意的流程方案',type:'A'}
+]},
+{q:'客户对你的工作成果不满意，提出了很多修改意见。你会：',opts:[
+{text:'耐心倾听需求，重新调整方案',type:'S'},
+{text:'分析反馈意见，找出核心问题',type:'I'},
+{text:'按照修改意见逐条完善',type:'C'},
+{text:'主动沟通，引导客户明确真正需求',type:'E'},
+{text:'提出一个超出预期的创意方案',type:'A'}
+]},
+{q:'你需要在一个小时内完成一个不熟悉的任务。你会：',opts:[
+{text:'快速学习关键知识，边做边完善',type:'I'},
+{text:'按照最稳妥的方式先完成基本要求',type:'C'},
+{text:'请教有经验的同事，快速获取指导',type:'S'},
+{text:'相信自己的直觉，快速做出决策',type:'E'},
+{text:'用自己最擅长的方法灵活应对',type:'R'}
+]},
+{q:'团队中有一位成员经常不配合工作。你会：',opts:[
+{text:'私下沟通，了解对方不配合的原因',type:'S'},
+{text:'明确指出问题，要求对方遵守团队规则',type:'E'},
+{text:'分析团队协作中的结构性问题',type:'I'},
+{text:'调整工作分配，减少对该成员的依赖',type:'C'},
+{text:'尝试用更有趣的方式激发对方的参与感',type:'A'}
+]},
+{q:'领导给你安排了一个与你职业规划不符的任务。你会：',opts:[
+{text:'先完成任务，再找机会与领导沟通职业方向',type:'C'},
+{text:'直接与领导沟通，表达自己的职业期望',type:'E'},
+{text:'从中发现新的学习机会和可能性',type:'I'},
+{text:'把它当作锻炼自己适应能力的机会',type:'S'},
+{text:'用创意的方式完成任务，同时展现自己的特长',type:'A'}
+]},
+{q:'你有两个同样紧急的任务需要处理。你会：',opts:[
+{text:'按照优先级和影响力排序，制定执行计划',type:'C'},
+{text:'寻求同事协助，分工合作',type:'S'},
+{text:'选择更有挑战性的那个先做',type:'E'},
+{text:'快速评估两个任务的关联性，找到高效方案',type:'I'},
+{text:'用创新方法提高效率，两个一起推进',type:'A'}
+]},
+{q:'你发现公司的某个产品存在潜在问题，但其他人没有注意到。你会：',opts:[
+{text:'深入研究问题，收集充分的证据',type:'I'},
+{text:'直接向管理层报告，建议立即处理',type:'E'},
+{text:'先与相关同事讨论，确认问题的严重性',type:'S'},
+{text:'按照公司流程提交问题报告',type:'C'},
+{text:'提出一个创新的解决方案',type:'A'}
+]},
+{q:'你被要求在大型会议上做一次演讲。你会：',opts:[
+{text:'精心准备演讲内容和PPT',type:'C'},
+{text:'把它当作展示自己影响力的好机会',type:'E'},
+{text:'研究听众特点，设计有针对性的内容',type:'I'},
+{text:'用生动有趣的方式吸引听众注意力',type:'A'},
+{text:'关注听众的反应，适时调整演讲方式',type:'S'}
+]},
+{q:'你的团队需要选择一个新技术方案。你会：',opts:[
+{text:'对比各种方案的优劣，用数据说话',type:'I'},
+{text:'选择最成熟稳定的方案',type:'C'},
+{text:'组织团队讨论，达成共识',type:'S'},
+{text:'果断选择最有前景的方案并推动实施',type:'E'},
+{text:'探索最新最前沿的技术方案',type:'A'}
+]},
+{q:'工作中遇到一个从未见过的技术难题。你会：',opts:[
+{text:'系统地查阅资料，从原理层面理解问题',type:'I'},
+{text:'动手实验，通过试错找到解决方案',type:'R'},
+{text:'请教行业专家或搜索类似案例',type:'S'},
+{text:'按照标准排查流程逐一检查',type:'C'},
+{text:'跳出常规思维，尝试非传统的方法',type:'A'}
+]},
+{q:'你需要说服领导支持你的新方案。你会：',opts:[
+{text:'准备详尽的数据分析和可行性报告',type:'I'},
+{text:'强调方案带来的商业价值和竞争优势',type:'E'},
+{text:'先与领导建立良好的关系，再提出方案',type:'S'},
+{text:'按照公司标准格式提交正式提案',type:'C'},
+{text:'用生动的案例和愿景来打动领导',type:'A'}
+]},
+{q:'团队完成了一个重要项目，但你觉得结果不够理想。你会：',opts:[
+{text:'组织复盘会议，总结经验教训',type:'C'},
+{text:'分析每个环节，找出可以改进的地方',type:'I'},
+{text:'肯定团队的努力，鼓励大家继续进步',type:'S'},
+{text:'提出更高的目标，激励团队下次做得更好',type:'E'},
+{text:'提出创新的改进方案',type:'A'}
+]},
+{q:'你被调到一个全新的部门，一切都要从头开始。你会：',opts:[
+{text:'快速学习新领域的知识和技能',type:'I'},
+{text:'主动结识新同事，建立人际关系',type:'S'},
+{text:'制定学习计划，系统性地掌握新工作',type:'C'},
+{text:'把这当作拓展能力边界的机会',type:'E'},
+{text:'用全新的视角发现改进空间',type:'A'}
+]},
+{q:'你和同事对一个工作方案有严重分歧。你会：',opts:[
+{text:'用客观数据和事实来支持自己的观点',type:'I'},
+{text:'寻求折中方案，尽量满足双方需求',type:'S'},
+{text:'坚持自己的观点，据理力争',type:'E'},
+{text:'按照上级的决定或公司流程来处理',type:'C'},
+{text:'提出一个融合双方想法的创新方案',type:'A'}
+]},
+{q:'你感到当前工作缺乏挑战性和成长空间。你会：',opts:[
+{text:'主动申请更有挑战性的项目',type:'E'},
+{text:'利用业余时间学习新技能',type:'I'},
+{text:'与领导沟通，表达成长需求',type:'S'},
+{text:'在现有工作中寻找可以优化的地方',type:'C'},
+{text:'尝试用创新的方式重新定义自己的工作',type:'A'}
+]},
+{q:'公司面临一个重大决策，需要你的意见。你会：',opts:[
+{text:'深入研究行业趋势和竞争格局',type:'I'},
+{text:'从团队和员工的角度考虑影响',type:'S'},
+{text:'评估风险，制定应对预案',type:'C'},
+{text:'做出大胆但有依据的判断',type:'E'},
+{text:'提出颠覆性的创新方向',type:'A'}
+]}
+];
+
+const abilityQuestions = [
+'口头表达能力','书面表达能力','逻辑分析能力','创意创新能力','组织计划能力',
+'领导激励能力','学习适应能力','细节准确能力','人际交往能力','情绪抗压能力'
+];
+
+const valueQuestions = [
+'收入回报','职业发展','工作稳定','生活平衡','成就认可',
+'自主自由','社会贡献','创意表达','团队氛围','学习成长',
+'挑战性','社会地位','工作地点','企业文化','福利保障'
+];
+
+// ==================== STATE ====================
+let answers = {};
+let currentPart = 0;
+const totalQuestions = 106;
+const parts = [0,36,61,81,91,106]; // cumulative question counts
+
+// ==================== RENDER ====================
+function renderLikert(containerId, questions, prefix) {
+const c = document.getElementById(containerId);
+let html = '';
+questions.forEach((item, i) => {
+const qNum = i + 1;
+const qId = prefix + '_' + i;
+html += '<div class="question"><div class="question-num">第 ' + qNum + ' 题</div>';
+html += '<div class="question-text">' + item.text + '</div><div class="likert">';
+const labels = ['很不符合','不符合','一般','符合','非常符合'];
+for (let s = 1; s <= 5; s++) {
+html += '<button class="likert-btn" data-qid="' + qId + '" data-score="' + s + '" onclick="selectLikert(this)">' + s + '<span class="likert-label">' + labels[s-1] + '</span></button>';
+}
+html += '</div></div>';
+});
+c.innerHTML = html;
+}
+
+function renderScenarios(containerId, questions, prefix) {
+const c = document.getElementById(containerId);
+let html = '';
+questions.forEach((item, i) => {
+const qId = prefix + '_' + i;
+html += '<div class="question"><div class="question-num">第 ' + (i+1) + ' 题</div>';
+html += '<div class="question-text">' + item.q + '</div><div class="scenario-options">';
+const labels = ['A','B','C','D','E'];
+item.opts.forEach((opt, j) => {
+html += '<div class="option-card" data-qid="' + qId + '" data-type="' + opt.type + '" onclick="selectScenario(this)"><span class="opt-label">' + labels[j] + '.</span>' + opt.text + '</div>';
+});
+html += '</div></div>';
+});
+c.innerHTML = html;
+}
+
+function renderAbility(containerId, questions, prefix) {
+const c = document.getElementById(containerId);
+let html = '';
+questions.forEach((text, i) => {
+const qId = prefix + '_' + i;
+html += '<div class="question"><div class="question-num">第 ' + (i+1) + ' 题</div>';
+html += '<div class="question-text">' + text + '</div><div class="likert">';
+const labels = ['很弱','较弱','一般','较强','很强'];
+for (let s = 1; s <= 5; s++) {
+html += '<button class="likert-btn" data-qid="' + qId + '" data-score="' + s + '" onclick="selectLikert(this)">' + s + '<span class="likert-label">' + labels[s-1] + '</span></button>';
+}
+html += '</div></div>';
+});
+c.innerHTML = html;
+}
+
+function renderValues(containerId, questions, prefix) {
+const c = document.getElementById(containerId);
+let html = '';
+questions.forEach((text, i) => {
+const qId = prefix + '_' + i;
+html += '<div class="question"><div class="question-num">第 ' + (i+1) + ' 题</div>';
+html += '<div class="question-text">「' + text + '」对我来说的重要程度</div><div class="likert">';
+const labels = ['很不重要','不重要','一般','重要','非常重要'];
+for (let s = 1; s <= 5; s++) {
+html += '<button class="likert-btn" data-qid="' + qId + '" data-score="' + s + '" onclick="selectLikert(this)">' + s + '<span class="likert-label">' + labels[s-1] + '</span></button>';
+}
+html += '</div></div>';
+});
+c.innerHTML = html;
+}
+
+// ==================== INTERACTIONS ====================
+function selectLikert(btn) {
+const qid = btn.dataset.qid;
+const score = parseInt(btn.dataset.score);
+answers[qid] = score;
+const siblings = btn.parentElement.querySelectorAll('.likert-btn');
+siblings.forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+updateProgress();
+}
+
+function selectScenario(card) {
+const qid = card.dataset.qid;
+const type = card.dataset.type;
+answers[qid] = type;
+const siblings = card.parentElement.querySelectorAll('.option-card');
+siblings.forEach(b => b.classList.remove('active'));
+card.classList.add('active');
+updateProgress();
+}
+
+function updateProgress() {
+let answered = 0;
+for (let key in answers) { if (answers[key] !== undefined) answered++; }
+const pct = Math.round((answered / totalQuestions) * 100);
+document.getElementById('progressFill').style.width = pct + '%';
+document.getElementById('progressPercent').textContent = pct + '%';
+}
+
+// ==================== NAVIGATION ====================
+function startAssessment() {
+document.getElementById('welcomeCard').classList.add('hidden');
+document.getElementById('progressContainer').style.display = 'block';
+goPart(1);
+}
+
+function goPart(partNum) {
+const cards = ['activationCard','welcomeCard','part1Card','part2Card','part3Card','part4Card','part5Card','resultCard'];
+cards.forEach(id => document.getElementById(id).classList.add('hidden'));
+if (partNum >= 1 && partNum <= 5) {
+document.getElementById('part' + partNum + 'Card').classList.remove('hidden');
+document.getElementById('part' + partNum + 'Card').classList.add('fade-in');
+const partNames = ['','第一部分：霍兰德职业兴趣','第二部分：大五人格','第三部分：情境判断','第四部分：核心能力','第五部分：职业价值观'];
+document.getElementById('progressText').textContent = partNames[partNum];
+currentPart = partNum;
+window.scrollTo({top: 0, behavior: 'smooth'});
+}
+updateProgress();
+}
+
+// ==================== SUBMIT ====================
+function submitAssessment() {
+let answered = 0;
+for (let key in answers) { if (answers[key] !== undefined) answered++; }
+if (answered < totalQuestions) {
+const unanswered = totalQuestions - answered;
+if (!confirm('你还有 ' + unanswered + ' 道题未作答，确定要提交吗？未作答的题目将按最低分计算。')) return;
+}
+// Show loading
+const overlay = document.createElement('div');
+overlay.className = 'loading-overlay';
+overlay.id = 'loadingOverlay';
+overlay.innerHTML = '<div class="spinner"></div><div class="loading-text">正在分析你的评估数据...</div>';
+document.body.appendChild(overlay);
+setTimeout(() => {
+calculateResults();
+overlay.remove();
+}, 1500);
+}
+
+// ==================== CALCULATE ====================
+function calculateResults() {
+// Holland scores from Part 1
+const hollandTypes = ['R','I','A','S','E','C'];
+const hollandScores = {R:0,I:0,A:0,S:0,E:0,C:0};
+hollandQuestions.forEach((item, i) => {
+const key = 'holland_' + i;
+hollandScores[item.type] += (answers[key] || 1);
+});
+
+// Add scenario scores
+scenarioQuestions.forEach((item, i) => {
+const key = 'scenario_' + i;
+const type = answers[key];
+if (type && hollandScores[type] !== undefined) {
+hollandScores[type] += 2;
+}
+});
+
+// Sort and get top 3
+const hollandSorted = Object.entries(hollandScores).sort((a,b) => b[1] - a[1]);
+const hollandCode = hollandSorted.slice(0,3).map(x => x[0]).join('');
+
+// Big Five
+const bigFiveDims = ['O','C','E','A','N'];
+const bigFiveScores = {O:0,C:0,E:0,A:0,N:0};
+const bigFiveCounts = {O:0,C:0,E:0,A:0,N:0};
+bigFiveQuestions.forEach((item, i) => {
+const key = 'bigfive_' + i;
+const val = answers[key] || 3;
+bigFiveScores[item.dim] += val;
+bigFiveCounts[item.dim]++;
+});
+const bigFiveAvg = {};
+bigFiveDims.forEach(d => { bigFiveAvg[d] = bigFiveScores[d] / bigFiveCounts[d]; });
+// Reverse N for emotional stability
+bigFiveAvg['S'] = 6 - bigFiveAvg['N']; // emotional stability
+
+// Abilities
+const abilityScores = [];
+abilityQuestions.forEach((name, i) => {
+abilityScores.push({name: name, score: answers['ability_' + i] || 3});
+});
+const topAbilities = abilityScores.filter(a => a.score >= 4).sort((a,b) => b.score - a.score).slice(0,3);
+const weakAbilities = abilityScores.filter(a => a.score <= 2).sort((a,b) => a.score - b.score).slice(0,2);
+if (topAbilities.length === 0) topAbilities.push(...abilityScores.sort((a,b) => b.score - a.score).slice(0,3));
+if (weakAbilities.length === 0) weakAbilities.push(...abilityScores.sort((a,b) => a.score - b.score).slice(0,2));
+
+// Values
+const valueScores = [];
+valueQuestions.forEach((name, i) => {
+valueScores.push({name: name, score: answers['value_' + i] || 3});
+});
+const topValues = valueScores.sort((a,b) => b.score - a.score).slice(0,3);
+
+// Scenario type counts
+const scenarioTypeCounts = {R:0,I:0,A:0,S:0,E:0,C:0};
+scenarioQuestions.forEach((item, i) => {
+const type = answers['scenario_' + i];
+if (type) scenarioTypeCounts[type]++;
+});
+
+renderResults(hollandScores, hollandCode, hollandSorted, bigFiveAvg, topAbilities, weakAbilities, topValues, abilityScores, valueScores, scenarioTypeCounts);
+}
+
+// ==================== RENDER RESULTS ====================
+function renderResults(hollandScores, hollandCode, hollandSorted, bigFiveAvg, topAbilities, weakAbilities, topValues, abilityScores, valueScores, scenarioTypeCounts) {
+const cards = ['activationCard','welcomeCard','part1Card','part2Card','part3Card','part4Card','part5Card'];
+cards.forEach(id => document.getElementById(id).classList.add('hidden'));
+document.getElementById('progressContainer').style.display = 'none';
+document.getElementById('resultCard').classList.remove('hidden');
+document.getElementById('resultCard').classList.add('fade-in');
+document.getElementById('printBtn').style.display = 'block';
+
+const typeNames = {R:'现实型',I:'研究型',A:'艺术型',S:'社会型',E:'企业型',C:'常规型'};
+const typeDescs = {
+R:'你喜欢动手操作，偏好具体、实际的工作任务。你擅长使用工具和机械，注重实际成果。',
+I:'你喜欢分析和研究，偏好需要深入思考的工作。你善于发现规律，追求知识的深度。',
+A:'你喜欢创造和表达，偏好自由、灵活的工作环境。你具有丰富的想象力和审美能力。',
+S:'你喜欢帮助和指导他人，偏好与人打交道的工作。你善于沟通，关心他人的需求。',
+E:'你喜欢领导和影响他人，偏好有挑战性和竞争性的工作。你善于决策和说服。',
+C:'你喜欢有条理的工作，偏好结构化、规范化的环境。你注重细节和准确性。'
+};
+
+const dimNames = {O:'开放性',C:'尽责性',E:'外向性',A:'宜人性',N:'神经质',S:'情绪稳定性'};
+const dimDescs = {
+O:{high:'你思维开放，乐于接受新事物和变化。适合需要创新和灵活思维的工作。',low:'你偏好熟悉和稳定的事物，适合需要专注和深耕的领域。'},
+C:{high:'你做事有条理、有计划，值得信赖。适合需要精确和可靠性的岗位。',low:'你更随性灵活，适合需要快速应变和创意的工作。'},
+E:{high:'你善于社交，精力充沛。适合需要频繁人际互动和团队协作的工作。',low:'你偏好独立工作，适合需要深度专注和独立思考的岗位。'},
+A:{high:'你友善合作，善于体谅他人。适合需要团队协作和客户服务的岗位。',low:'你更直接果断，适合需要客观判断和坚持原则的工作。'},
+N:{high:'你可能更容易感到压力和焦虑。建议选择压力可控、支持性强的工作环境。',low:'你情绪稳定，能较好地应对压力。适合高压、快节奏的工作环境。'},
+S:{high:'你情绪稳定，能在压力下保持冷静。适合需要抗压能力的工作。',low:'你可能较容易受情绪影响，建议选择稳定、支持性强的环境。'}
+};
+
+const code1 = hollandCode[0], code2 = hollandCode[1], code3 = hollandCode[2];
+
+// Combination mapping
+const comboMap = {
+RI:'工程技术、科学研究、数据分析',IR:'工程技术、科学研究、数据分析',
+RA:'工业设计、建筑设计、产品设计',AR:'工业设计、建筑设计、产品设计',
+RS:'技术培训、医疗技术、工程管理',SR:'技术培训、医疗技术、工程管理',
+RE:'技术销售、工程管理、创业',ER:'技术销售、工程管理、创业',
+RC:'质量管理、技术文档、工程行政',CR:'质量管理、技术文档、工程行政',
+IA:'学术研究、UX设计、科学传播',AI:'学术研究、UX设计、科学传播',
+IS:'教育、咨询、医疗',SI:'教育、咨询、医疗',
+IE:'技术管理、咨询、创业',EI:'技术管理、咨询、创业',
+IC:'数据分析、研究行政、实验室管理',CI:'数据分析、研究行政、实验室管理',
+AS:'艺术教育、设计咨询、媒体',SA:'艺术教育、设计咨询、媒体',
+AE:'创意总监、品牌管理、广告',EA:'创意总监、品牌管理、广告',
+AC:'设计行政、编辑、出版',CA:'设计行政、编辑、出版',
+SE:'人力资源管理、销售管理、公共关系',ES:'人力资源管理、销售管理、公共关系',
+SC:'行政管理、教育管理、社会工作',CS:'行政管理、教育管理、社会工作',
+EC:'项目管理、企业管理、银行管理',CE:'项目管理、企业管理、银行管理'
+};
+
+const combo2 = code1 + code2;
+const comboJobs = comboMap[combo2] || '多元化职业方向';
+
+// Industry recommendations
+function getIndustries(code, bigFive, values) {
+const industries = [];
+const topValNames = values.map(v => v.name);
+const c1 = code[0], c2 = code[1];
+if (c1==='R'||c2==='R') industries.push({name:'制造业与工程技术',desc:'你的动手能力和技术兴趣使你适合参与产品制造、工程实施等技术密集型行业。',tag:'tag-blue'});
+if (c1==='I'||c2==='I') industries.push({name:'科技与研发',desc:'你的分析能力和求知欲使你适合科技研发、数据分析、学术研究等知识密集型行业。',tag:'tag-purple'});
+if (c1==='A'||c2==='A') industries.push({name:'文化创意与设计',desc:'你的创造力和审美能力使你适合广告、媒体、设计、影视等创意行业。',tag:'tag-pink'});
+if (c1==='S'||c2==='S') industries.push({name:'教育与社会服务',desc:'你的助人特质和沟通能力使你适合教育、培训、咨询、医疗健康等服务行业。',tag:'tag-green'});
+if (c1==='E'||c2==='E') industries.push({name:'商业与管理',desc:'你的领导力和商业敏感度使你适合企业管理、市场营销、金融投资等商业领域。',tag:'tag-orange'});
+if (c1==='C'||c2==='C') industries.push({name:'行政与公共服务',desc:'你的条理性和严谨性使你适合政府机关、金融机构、行政后勤等规范化行业。',tag:'tag-blue'});
+if (industries.length === 0) industries.push({name:'多元化方向',desc:'你的兴趣分布较为均衡，可以考虑跨领域发展。',tag:'tag-purple'});
+if (topValNames.includes('收入回报') && !industries.find(x=>x.name.includes('金融'))) industries.push({name:'金融与投资',desc:'你对收入回报的重视程度较高，金融行业可能提供更好的薪酬前景。',tag:'tag-orange'});
+return industries.slice(0,3);
+}
+
+// Job recommendations
+function getJobs(code, abilities, scenarioCounts) {
+const jobs = [];
+const c1 = code[0], c2 = code[1], c3 = code[2];
+const jobMap = {
+R:['机械工程师','电气工程师','建筑师','技术工程师','质量工程师','施工管理'],
+I:['数据分析师','研究员','算法工程师','科学顾问','技术架构师','产品经理'],
+A:['UI/UX设计师','平面设计师','内容创作者','品牌设计师','创意总监','视频制作人'],
+S:['教师','培训师','心理咨询师','人力资源专员','客户经理','社工'],
+E:['销售经理','项目经理','创业者','产品总监','市场总监','管理顾问'],
+C:['财务分析师','行政经理','审计师','数据管理员','运营专员','法务助理']
+};
+const pool = [...(jobMap[c1]||[]),...(jobMap[c2]||[])];
+const unique = [...new Set(pool)];
+// Prioritize based on abilities
+const topAbilityNames = abilities.filter(a=>a.score>=4).map(a=>a.name);
+if (topAbilityNames.includes('领导激励能力') && !unique.includes('项目经理')) unique.unshift('项目经理');
+if (topAbilityNames.includes('创意创新能力') && !unique.includes('产品经理')) unique.unshift('产品经理');
+if (topAbilityNames.includes('逻辑分析能力') && !unique.includes('数据分析师')) unique.unshift('数据分析师');
+return unique.slice(0,6);
+}
+
+// Development suggestions
+const devSuggestions = {
+'口头表达能力':'多参加演讲培训、Toastmasters俱乐部，练习结构化表达和即兴发言。',
+'书面表达能力':'坚持写工作日志或博客，学习商业写作和文案技巧，阅读优秀作品。',
+'逻辑分析能力':'学习结构化思维方法（如金字塔原理），多做案例分析练习。',
+'创意创新能力':'接触不同领域的知识，练习头脑风暴和设计思维方法。',
+'组织计划能力':'学习项目管理方法论（如PMP），使用计划工具养成规划习惯。',
+'领导激励能力':'主动承担团队负责人角色，学习领导力理论和教练技术。',
+'学习适应能力':'刻意接触新领域，设定学习挑战目标，培养成长型思维。',
+'细节准确能力':'建立检查清单和复核流程，培养对数据和细节的敏感度。',
+'人际交往能力':'扩大社交圈，学习沟通技巧和情商管理，多参与团队活动。',
+'情绪抗压能力':'学习压力管理技巧（如冥想、运动），建立良好的工作生活平衡。'
+};
+
+// Environment recommendations
+function getEnvironment(bigFive, values, scenarioCounts) {
+const envs = [];
+const topValNames = values.map(v => v.name);
+if (bigFive.E >= 3.5) envs.push({name:'开放协作型',desc:'适合扁平化管理、鼓励沟通和创意的团队环境。',icon:'&#x1F465;'});
+else envs.push({name:'专注独立型',desc:'适合提供独立工作空间、尊重个人节奏的环境。',icon:'&#x1F9D0;'});
+if (bigFive.C >= 3.5) envs.push({name:'结构规范型',desc:'适合流程清晰、制度完善、目标明确的大型企业或机构。',icon:'&#x1F3DB;'});
+else envs.push({name:'灵活创新型',desc:'适合创业公司或创新型团队，鼓励试错和快速迭代。',icon:'&#x1F680;'});
+if (topValNames.includes('生活平衡')) envs.push({name:'注重福利型',desc:'建议选择重视员工福利、提供弹性工作制的公司。',icon:'&#x2615;'});
+if (topValNames.includes('社会贡献')) envs.push({name:'使命驱动型',desc:'适合有明确社会使命的企业或公益组织。',icon:'&#x1F31F;'});
+if (topValNames.includes('自主自由')) envs.push({name:'高度自治型',desc:'适合远程办公、弹性工时或自由职业的工作模式。',icon:'&#x1F3DE;'});
+if (topValNames.includes('挑战性')) envs.push({name:'高速成长型',desc:'适合快速发展中的企业，能提供丰富的挑战和成长机会。',icon:'&#x1F525;'});
+return envs.slice(0,3);
+}
+
+const industries = getIndustries(hollandCode, bigFiveAvg, topValues);
+const jobs = getJobs(hollandCode, topAbilities, scenarioTypeCounts);
+const environments = getEnvironment(bigFiveAvg, topValues, scenarioTypeCounts);
+
+// Build HTML
+let html = '';
+
+// Section 1: Holland
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#e17055,#fd79a8)">&#x1F3AF;</div>霍兰德职业类型</div>';
+html += '<div class="holland-code-display">';
+html += '<div class="holland-code-letters">';
+hollandCode.split('').forEach((letter,i) => {
+html += '<div class="holland-letter">' + letter + '</div>';
+});
+html += '</div>';
+html += '<div class="holland-labels">';
+hollandCode.split('').forEach(letter => {
+html += '<div class="holland-label">' + typeNames[letter] + '</div>';
+});
+html += '</div>';
+html += '<p style="margin-top:12px;font-size:0.9rem;color:var(--text-light)">你的霍兰德职业代码为 <strong style="color:var(--secondary);font-size:1.1rem">' + hollandCode + '</strong></p>';
+html += '</div>';
+
+// Radar chart
+html += '<div class="chart-container"><canvas id="radarChart" width="360" height="360"></canvas></div>';
+
+// Holland description
+html += '<div class="expandable"><div class="expandable-header" onclick="toggleExpand(this)">类型解读 <span class="arrow">&#x25BC;</span></div>';
+html += '<div class="expandable-body"><div class="expandable-content">';
+hollandCode.split('').forEach(letter => {
+html += '<p style="margin-bottom:10px"><strong>' + letter + ' - ' + typeNames[letter] + '：</strong>' + typeDescs[letter] + '</p>';
+});
+html += '</div></div></div>';
+
+html += '<div class="expandable"><div class="expandable-header" onclick="toggleExpand(this)">推荐职业方向 <span class="arrow">&#x25BC;</span></div>';
+html += '<div class="expandable-body"><div class="expandable-content">';
+html += '<p style="margin-bottom:8px">基于你的 <strong>' + hollandCode + '</strong> 组合，推荐以下职业方向：</p>';
+html += '<div class="job-tags">';
+jobs.forEach(j => { html += '<span class="tag tag-purple">' + j + '</span>'; });
+html += '</div>';
+html += '</div></div></div>';
+html += '</div>';
+
+// Section 2: Big Five
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#00b894,#00cec9)">&#x1F9E0;</div>人格特质画像</div>';
+html += '<div class="bar-chart">';
+const dims = ['O','C','E','A','S'];
+const dimColors = ['o','c','e','a','n'];
+dims.forEach((d, i) => {
+const val = bigFiveAvg[d];
+const pct = Math.round((val / 5) * 100);
+const level = val >= 3.5 ? '偏高' : val <= 2.5 ? '偏低' : '中等';
+html += '<div class="bar-row"><div class="bar-label">' + dimNames[d] + '</div>';
+html += '<div class="bar-track"><div class="bar-fill ' + dimColors[i] + '" style="width:' + pct + '%">' + val.toFixed(1) + '</div></div></div>';
+});
+html += '</div>';
+
+html += '<div class="expandable"><div class="expandable-header" onclick="toggleExpand(this)">特质解读 <span class="arrow">&#x25BC;</span></div>';
+html += '<div class="expandable-body"><div class="expandable-content">';
+dims.forEach(d => {
+const val = bigFiveAvg[d];
+const level = val >= 3.5 ? 'high' : val <= 2.5 ? 'low' : 'mid';
+html += '<div class="dim-desc"><strong>' + dimNames[d] + '（' + val.toFixed(1) + '分，' + (val>=3.5?'偏高':val<=2.5?'偏低':'中等') + '）：</strong>' + dimDescs[d][level] + '</div>';
+});
+html += '</div></div></div>';
+html += '</div>';
+
+// Section 3: Industry Direction
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#0984e3,#74b9ff)">&#x1F4CD;</div>行业方向</div>';
+html += '<p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px">综合你的职业兴趣、人格特质和价值观，推荐以下目标行业：</p>';
+industries.forEach(ind => {
+html += '<div class="rec-card" style="border-left-color:' + (ind.tag==='tag-blue'?'#4f9cf9':ind.tag==='tag-purple'?'#6c63ff':ind.tag==='tag-green'?'#00b894':ind.tag==='tag-orange'?'#e17055':'#fd79a8') + '"><h4>' + ind.name + '</h4><p>' + ind.desc + '</p></div>';
+});
+html += '</div>';
+
+// Section 4: Job Type
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)">&#x1F4BC;</div>岗位类型</div>';
+html += '<p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px">基于你的兴趣类型和能力优势，推荐以下具体岗位：</p>';
+html += '<div class="job-tags" style="margin-bottom:16px">';
+jobs.forEach(j => { html += '<span class="tag tag-purple" style="font-size:0.9rem;padding:6px 16px">' + j + '</span>'; });
+html += '</div>';
+html += '<div class="dim-desc">这些岗位与你的 <strong>' + hollandCode + '</strong> 职业类型高度匹配，同时结合了你的核心能力优势。建议进一步了解这些岗位的具体要求和发展路径。</div>';
+html += '</div>';
+
+// Section 5: Development Focus
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#fdcb6e,#e17055)">&#x1F3AF;</div>发展重点</div>';
+
+html += '<h4 style="margin-bottom:12px;font-size:0.95rem;color:#00b894">&#x2714; 核心优势（Top 3）</h4>';
+topAbilities.forEach(a => {
+html += '<div class="strength-item"><div class="strength-dot s"></div><span class="strength-name">' + a.name + '</span><span class="strength-score">' + a.score + '/5</span></div>';
+});
+
+html += '<h4 style="margin:16px 0 12px;font-size:0.95rem;color:#e17055">&#x2716; 待提升领域</h4>';
+weakAbilities.forEach(a => {
+html += '<div class="strength-item weakness"><div class="strength-dot w"></div><span class="strength-name">' + a.name + '</span><span class="strength-score">' + a.score + '/5</span></div>';
+});
+
+html += '<div class="expandable"><div class="expandable-header" onclick="toggleExpand(this)">提升建议 <span class="arrow">&#x25BC;</span></div>';
+html += '<div class="expandable-body"><div class="expandable-content">';
+weakAbilities.forEach(a => {
+html += '<div class="rec-card"><h4>' + a.name + '</h4><p>' + (devSuggestions[a.name]||'持续学习和实践是提升的关键。') + '</p></div>';
+});
+html += '</div></div></div>';
+html += '</div>';
+
+// Section 6: Environment
+html += '<div class="result-section">';
+html += '<div class="result-title"><div class="icon" style="background:linear-gradient(135deg,#fd79a8,#e84393)">&#x1F3E0;</div>环境选择</div>';
+html += '<p style="font-size:0.9rem;color:var(--text-light);margin-bottom:16px">基于你的工作风格偏好和职业价值观，推荐以下工作环境：</p>';
+environments.forEach(env => {
+html += '<div class="rec-card" style="border-left-color:#fd79a8"><h4>' + env.icon + ' ' + env.name + '</h4><p>' + env.desc + '</p></div>';
+});
+
+html += '<div class="expandable"><div class="expandable-header" onclick="toggleExpand(this)">价值观分析 <span class="arrow">&#x25BC;</span></div>';
+html += '<div class="expandable-body"><div class="expandable-content">';
+html += '<p style="margin-bottom:10px">你最看重的职业价值：</p>';
+html += '<div class="job-tags" style="margin-bottom:12px">';
+topValues.forEach(v => { html += '<span class="tag tag-green">' + v.name + '（' + v.score + '分）</span>'; });
+html += '</div>';
+html += '<p style="font-size:0.85rem;color:var(--text-light)">在选择工作时，建议优先考虑与这些价值观匹配的组织和文化环境，这将显著提升你的职业满意度和长期发展动力。</p>';
+html += '</div></div></div>';
+html += '</div>';
+
+// Footer
+html += '<div style="text-align:center;padding:24px 0;border-top:1px solid #eee;margin-top:24px">';
+html += '<p style="font-size:0.85rem;color:var(--text-light)">本评估结果仅供参考，建议结合实际情况和专业咨询做出职业决策。</p>';
+html += '<p style="font-size:0.8rem;color:#bbb;margin-top:8px">专业职业评估系统 &copy; 2026</p>';
+html += '</div>';
+
+document.getElementById('resultContent').innerHTML = html;
+
+// Draw charts
+setTimeout(() => {
+drawRadarChart(hollandScores);
+}, 100);
+}
+
+// ==================== CHARTS ====================
+function drawRadarChart(scores) {
+const canvas = document.getElementById('radarChart');
+if (!canvas) return;
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+const size = 360;
+canvas.width = size * dpr;
+canvas.height = size * dpr;
+canvas.style.width = size + 'px';
+canvas.style.height = size + 'px';
+ctx.scale(dpr, dpr);
+
+const cx = size / 2, cy = size / 2;
+const maxR = 130;
+const types = ['R','I','A','S','E','C'];
+const labels = ['现实型(R)','研究型(I)','艺术型(A)','社会型(S)','企业型(E)','常规型(C)'];
+const maxScore = 36; // 6 questions * 5 max + up to ~8 from scenarios, but we normalize
+const vals = types.map(t => scores[t]);
+const maxVal = Math.max(...vals, 1);
+
+// Draw grid
+for (let ring = 1; ring <= 5; ring++) {
+const r = (ring / 5) * maxR;
+ctx.beginPath();
+for (let i = 0; i <= 6; i++) {
+const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+const x = cx + r * Math.cos(angle);
+const y = cy + r * Math.sin(angle);
+if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+}
+ctx.strokeStyle = '#e8e8e8';
+ctx.lineWidth = 1;
+ctx.stroke();
+}
+
+// Draw axes
+for (let i = 0; i < 6; i++) {
+const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+ctx.beginPath();
+ctx.moveTo(cx, cy);
+ctx.lineTo(cx + maxR * Math.cos(angle), cy + maxR * Math.sin(angle));
+ctx.strokeStyle = '#ddd';
+ctx.lineWidth = 1;
+ctx.stroke();
+}
+
+// Draw data
+ctx.beginPath();
+for (let i = 0; i <= 6; i++) {
+const idx = i % 6;
+const angle = (Math.PI * 2 * idx / 6) - Math.PI / 2;
+const r = (vals[idx] / maxVal) * maxR;
+const x = cx + r * Math.cos(angle);
+const y = cy + r * Math.sin(angle);
+if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+}
+ctx.fillStyle = 'rgba(108,99,255,0.15)';
+ctx.fill();
+ctx.strokeStyle = '#6c63ff';
+ctx.lineWidth = 2.5;
+ctx.stroke();
+
+// Draw dots
+for (let i = 0; i < 6; i++) {
+const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+const r = (vals[i] / maxVal) * maxR;
+const x = cx + r * Math.cos(angle);
+const y = cy + r * Math.sin(angle);
+ctx.beginPath();
+ctx.arc(x, y, 5, 0, Math.PI * 2);
+ctx.fillStyle = '#6c63ff';
+ctx.fill();
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 2;
+ctx.stroke();
+}
+
+// Draw labels
+ctx.fillStyle = '#2d3436';
+ctx.font = '600 12px -apple-system, sans-serif';
+ctx.textAlign = 'center';
+for (let i = 0; i < 6; i++) {
+const angle = (Math.PI * 2 * i / 6) - Math.PI / 2;
+const lx = cx + (maxR + 28) * Math.cos(angle);
+const ly = cy + (maxR + 28) * Math.sin(angle);
+ctx.fillText(labels[i], lx, ly + 4);
+}
+}
+
+// ==================== UTILS ====================
+function toggleExpand(header) {
+header.classList.toggle('open');
+const body = header.nextElementSibling;
+body.classList.toggle('open');
+}
+
+// ==================== INIT ====================
+// Check for existing activation on page load
+if (!checkExistingActivation()) {
+    // Show activation card (default state)
+    renderLikert('part1Questions', hollandQuestions, 'holland');
+    renderLikert('part2Questions', bigFiveQuestions, 'bigfive');
+    renderScenarios('part3Questions', scenarioQuestions, 'scenario');
+    renderAbility('part4Questions', abilityQuestions, 'ability');
+    renderValues('part5Questions', valueQuestions, 'value');
+} else {
+    // Already activated, render questions in background
+    renderLikert('part1Questions', hollandQuestions, 'holland');
+    renderLikert('part2Questions', bigFiveQuestions, 'bigfive');
+    renderScenarios('part3Questions', scenarioQuestions, 'scenario');
+    renderAbility('part4Questions', abilityQuestions, 'ability');
+    renderValues('part5Questions', valueQuestions, 'value');
+}
+</script>
+</body>
+</html>
